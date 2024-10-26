@@ -1,0 +1,44 @@
+#include <DHT.h>
+
+#define DHTPIN 9           // Pin donde está conectado el sensor DHT11
+#define DHTTYPE DHT11      // Tipo de sensor
+
+DHT dht(DHTPIN, DHTTYPE);
+
+float temperatura = 0.0;
+float umbralTemperatura = 28.0; // Umbral para activar la bomba de agua (ajustar según necesidad)
+
+void setup() {
+    Serial.begin(9600);       // Iniciar comunicación serial
+    dht.begin();              // Iniciar el sensor DHT11
+
+    pinMode(6, OUTPUT);       // Pin para el relay de la bomba de agua
+    digitalWrite(6, HIGH);    // Iniciar con la bomba de agua desactivada
+
+    Serial.println("Sistema iniciado. Bomba de agua desactivada.");
+}
+
+void loop() {
+    temperatura = dht.readTemperature();  // Leer la temperatura del sensor
+
+    if (isnan(temperatura)) {
+        Serial.println("Error al leer el sensor DHT11. Verifica las conexiones.");
+        return;
+    }
+
+    Serial.print("Temperatura actual: ");
+    Serial.print(temperatura);
+    Serial.println(" °C");
+
+    delay(1000);  // Espera de 1 segundo para evitar lecturas continuas
+
+    // Activar la bomba de agua si la temperatura supera el umbral
+    if (temperatura >= umbralTemperatura) {
+        Serial.println("Temperatura alta detectada: Activando bomba de agua.");
+        digitalWrite(6, LOW);  // Activar relay (bomba de agua)
+    } 
+    else {  // Apagar la bomba de agua si la temperatura está por debajo del umbral
+        Serial.println("Temperatura normal: Apagando bomba de agua.");
+        digitalWrite(6, HIGH); // Apagar relay (bomba de agua)
+    }
+}
